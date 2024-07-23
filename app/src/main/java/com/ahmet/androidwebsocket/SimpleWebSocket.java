@@ -35,8 +35,6 @@ public class SimpleWebSocket extends WebSocketClient {
     private static final int PING_INTERVAL = 30000; // 30 seconds
     private static final int RECONNECT_DELAY = 5000; // 5 seconds
     private static final int MAX_RECONNECT_ATTEMPTS = 5;
-    private static final int CONNECTION_TIMEOUT = 5000; // 5 seconds
-
     private Timer pingTimer;
     private final AtomicInteger reconnectAttempts = new AtomicInteger(0);
 
@@ -55,7 +53,7 @@ public class SimpleWebSocket extends WebSocketClient {
     public void onOpen(ServerHandshake handshakedata) {
         reconnectAttempts.set(0); // Reset reconnect attempts on successful connection
         webSocketListener.onWebsocketOpen(this, handshakedata);
-      //  startPingTimer(); // Start the ping timer
+        startPingTimer(); // Start the ping timer
     }
 
     @Override
@@ -71,8 +69,8 @@ public class SimpleWebSocket extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         webSocketListener.onWebsocketClose(this, code, reason, remote);
-        //stopPingTimer(); // Stop the ping timer
-      //  attemptReconnect(); // Attempt to reconnect
+        stopPingTimer(); // Stop the ping timer
+        attemptReconnect(); // Attempt to reconnect
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.ahmet.androidwebsocket;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,41 +9,19 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.ahmet.androidwebsocket.databinding.ActivityMainBinding;
-import com.ahmet.androidwebsocket.log.LogMessage;
-import com.ahmet.androidwebsocket.log.LogMessageAdapter;
-import com.ahmet.androidwebsocket.log.LogType;
-import com.ahmet.androidwebsocket.log.Logger;
+import com.ahmet.androidwebsocket.log.LogAdapter;
+import com.ahmet.androidwebsocket.log.LogEntry;
+import com.ahmet.androidwebsocket.websocket.WebSocketManager;
 
-import org.java_websocket.WebSocket;
-import org.java_websocket.WebSocketListener;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft;
-import org.java_websocket.exceptions.InvalidDataException;
-import org.java_websocket.framing.Framedata;
-import org.java_websocket.framing.PingFrame;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.handshake.Handshakedata;
-import org.java_websocket.handshake.ServerHandshake;
-import org.java_websocket.handshake.ServerHandshakeBuilder;
-
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 
-
-
-public class MainActivity extends AppCompatActivity implements WebSocketListener {
+public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private ArrayAdapter<String> logAdapter;
-    private List<String> logList = new ArrayList<>();
-    private SimpleWebSocket webSocket;
-
-    private static final String WEBSOCKET_URL = "ws://192.168.3.2:2005";
-    private static final int CONNECTION_TIMEOUT = 5000;
+    private LogAdapter logAdapter;
+    private WebSocketManager webSocketManager;
+    private final String defaultSocketURL = "ws://192.168.3.2:2005";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,9 +31,11 @@ public class MainActivity extends AppCompatActivity implements WebSocketListener
 
         setupEdgeToEdge();
         setupLogAdapter();
-        setupWebSocket();
 
+        binding.urlEditText.setText(defaultSocketURL);
+        binding.connectButton.setOnClickListener(v -> connectWebSocket());
         binding.sendButton.setOnClickListener(v -> sendMessage());
+        binding.sendBytesButton.setOnClickListener(v -> sendByteMessage());
     }
 
     private void setupEdgeToEdge() {
@@ -70,117 +48,71 @@ public class MainActivity extends AppCompatActivity implements WebSocketListener
     }
 
     private void setupLogAdapter() {
-        logAdapter = new ArrayAdapter<>(this, R.layout.simple_list_item, logList);
+        logAdapter = new LogAdapter(this, new ArrayList<>() , binding.logListView);
         binding.logListView.setAdapter(logAdapter);
     }
 
-    private void setupWebSocket() {
-        try {
-            webSocket = new SimpleWebSocket(WEBSOCKET_URL, this);
-            webSocket.setConnectionLostTimeout(CONNECTION_TIMEOUT);
-            webSocket.connect();
-        } catch (URISyntaxException e) {
-            log("WebSocket URI Syntax Error: " + e.getMessage());
+    private void connectWebSocket() {
+        String url = binding.urlEditText.getText().toString();
+        if (url.isEmpty()) {
+            logAdapter.log(LogEntry.LogType.ERROR, "WebSocket URL is empty");
+            return;
         }
+
+        // Perform URL validation
+        if (!isValidWebSocketUrl(url)) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Invalid WebSocket URL");
+            return;
+        }
+
+        try {
+            webSocketManager = new WebSocketManager(url, logAdapter);
+            webSocketManager.connect();
+        } catch (Exception e) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Failed to create WebSocketManager: " + e.getMessage());
+        }
+    }
+
+    private boolean isValidWebSocketUrl(String url) {
+        // Simple URL validation logic
+        return url.startsWith("ws://") || url.startsWith("wss://");
     }
 
     private void sendMessage() {
-        String message = binding.messageEditTextText.getText().toString();
-        if (webSocket.isOpen() && !message.isEmpty()) {
-            webSocket.send(message);
-        } else {
-            webSocket.connect();
+        if (webSocketManager == null || !webSocketManager.isSocketOpen()) {
+            logAdapter.log(LogEntry.LogType.ERROR, "WebSocket is not connected");
+            return;
+        }
+
+        String message = binding.messageEditText.getText().toString();
+        if (message.isEmpty()) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Message is empty");
+            return;
+        }
+
+        try {
+            webSocketManager.sendMessage(message);
+        } catch (Exception e) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Failed to send message: " + e.getMessage());
         }
     }
 
-    private void log(String message) {
-        logList.add(message);
-        runOnUiThread(() -> {
-            logAdapter.notifyDataSetChanged();
-            binding.logListView.smoothScrollToPosition(logList.size() - 1);
-        });
-    }
+    private void sendByteMessage() {
+        if (webSocketManager == null || !webSocketManager.isSocketOpen()) {
+            logAdapter.log(LogEntry.LogType.ERROR, "WebSocket is not connected");
+            return;
+        }
 
-    @Override
-    public void onWebsocketOpen(WebSocket conn, Handshakedata d) {
-        log("WebSocket Opened");
-    }
+        String message = binding.messageEditText.getText().toString();
+        if (message.isEmpty()) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Message is empty");
+            return;
+        }
 
-    @Override
-    public void onWebsocketClose(WebSocket ws, int code, String reason, boolean remote) {
-        log("WebSocket Closed: Code=" + code + ", Reason=" + reason + ", Remote=" + remote);
-    }
-
-    @Override
-    public void onWebsocketClosing(WebSocket ws, int code, String reason, boolean remote) {
-
-    }
-
-    @Override
-    public void onWebsocketMessage(WebSocket conn, String message) {
-        log("WebSocket Message: " + message);
-    }
-
-    @Override
-    public void onWebsocketMessage(WebSocket conn, ByteBuffer blob) {
-        log("WebSocket Binary Message");
-    }
-
-    @Override
-    public void onWebsocketError(WebSocket conn, Exception ex) {
-        log("WebSocket Error: " + ex.getMessage());
-    }
-
-    @Override
-    public void onWebsocketPong(WebSocket conn, Framedata f) {
-        log("WebSocket Pong");
-    }
-
-    @Override
-    public void onWebsocketPing(WebSocket conn, Framedata f) {
-        log("WebSocket Ping");
-    }
-
-    @Override
-    public PingFrame onPreparePing(WebSocket conn) {
-        log("WebSocket Prepare Ping");
-        return null;
-    }
-
-    @Override
-    public void onWriteDemand(WebSocket conn) {
-        log("WebSocket Write Demand");
-    }
-
-    @Override
-    public ServerHandshakeBuilder onWebsocketHandshakeReceivedAsServer(WebSocket conn, Draft draft, ClientHandshake request) throws InvalidDataException {
-        return null;
-    }
-
-    @Override
-    public void onWebsocketHandshakeReceivedAsClient(WebSocket conn, ClientHandshake request, ServerHandshake response) {
-        log("WebSocket Handshake Received As Client");
-    }
-
-    @Override
-    public void onWebsocketHandshakeSentAsClient(WebSocket conn, ClientHandshake request) {
-        log("WebSocket Handshake Sent As Client");
-    }
-
-    @Override
-    public void onWebsocketCloseInitiated(WebSocket ws, int code, String reason) {
-        log("WebSocket Close Initiated: Code=" + code + ", Reason=" + reason);
-    }
-
-    @Override
-    public InetSocketAddress getLocalSocketAddress(WebSocket conn) {
-        log("WebSocket Local Socket Address");
-        return null;
-    }
-
-    @Override
-    public InetSocketAddress getRemoteSocketAddress(WebSocket conn) {
-        log("WebSocket Remote Socket Address");
-        return null;
+        try {
+            webSocketManager.sendByteMessage(message.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            logAdapter.log(LogEntry.LogType.ERROR, "Failed to send byte message: " + e.getMessage());
+        }
     }
 }

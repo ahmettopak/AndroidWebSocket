@@ -54,6 +54,18 @@ public class WebSocketManager implements WebSocketListener {
             logAdapter.log(LogEntry.LogType.ERROR, "WebSocket instance is null");
         }
     }
+    public void disconnect() {
+        if (webSocket != null) {
+            try {
+                webSocket.close(1000, "User disconnected");
+                logAdapter.log(LogEntry.LogType.INFO, "WebSocket disconnected");
+            } catch (Exception e) {
+                logAdapter.log(LogEntry.LogType.ERROR, "Failed to disconnect WebSocket: " + e.getMessage());
+            }
+        } else {
+            logAdapter.log(LogEntry.LogType.ERROR, "WebSocket instance is null");
+        }
+    }
 
     public void sendMessage(String message) {
         if (webSocket != null && webSocket.isOpen()) {

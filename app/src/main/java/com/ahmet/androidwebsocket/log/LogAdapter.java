@@ -23,12 +23,13 @@ import java.util.List;
  * @version 1.2
  * @since 7/23/2024
  */
+
 public class LogAdapter extends ArrayAdapter<LogEntry> {
 
-    private List<LogEntry> logList;
-    private Handler mainHandler;
+    private final List<LogEntry> logList;
+    private final Handler mainHandler;
     private final LayoutInflater inflater;
-    private ListView listView;  // Add this line to hold a reference to the ListView
+    private final ListView listView; // Add this line to hold a reference to the ListView
 
     public LogAdapter(@NonNull Context context, List<LogEntry> logList, ListView listView) {
         super(context, R.layout.simple_list_item, logList);
@@ -45,7 +46,7 @@ public class LogAdapter extends ArrayAdapter<LogEntry> {
 
             // Scroll to the bottom of the ListView
             if (listView != null) {
-                listView.post(() -> listView.setSelection(logList.size() - 1));
+                listView.postDelayed(() -> listView.setSelection(logList.size() - 1), 100);
             }
         });
     }

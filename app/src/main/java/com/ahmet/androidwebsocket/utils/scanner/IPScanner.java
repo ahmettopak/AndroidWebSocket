@@ -1,4 +1,4 @@
-package com.ahmet.androidwebsocket.utils;
+package com.ahmet.androidwebsocket.utils.scanner;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,12 +20,25 @@ public class IPScanner {
     private final ExecutorService executorService = Executors.newFixedThreadPool(20);
     private final List<String> reachableHosts = new ArrayList<>();
     private IPScanListener listener;
+    private boolean isScanning = false;
 
     public IPScanner(IPScanListener listener) {
         this.listener = listener;
     }
 
-    public void scanIPRange(String subnet) {
+    public synchronized void scanIPRange(String subnet) {
+        if (isScanning) {
+            return; // Prevent starting a new scan if one is already in progress
+        }
+
+        isScanning = true;
+        if (listener != null) {
+            listener.onIPScanStarted(); // Notify that scan has started
+        }
+
+        // Clear previous results
+        reachableHosts.clear();
+
         for (int i = 1; i < 255; i++) {
             final String host = subnet + "." + i;
             executorService.submit(() -> {
@@ -37,6 +50,7 @@ public class IPScanner {
                         }
                     }
                 } catch (IOException e) {
+                    // Log exception or handle it accordingly
                     e.printStackTrace();
                 }
             });
@@ -46,11 +60,16 @@ public class IPScanner {
         new Thread(() -> {
             try {
                 executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                if (listener != null) {
+                    listener.onIPScanCompleted(reachableHosts); // Notify that scan has completed
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
-            if (listener != null) {
-                listener.onScanCompleted(reachableHosts);
+                if (listener != null) {
+                    listener.onIPScanFailed("Scan interrupted");
+                }
+            } finally {
+                isScanning = false; // Allow new scans to start
             }
         }).start();
     }

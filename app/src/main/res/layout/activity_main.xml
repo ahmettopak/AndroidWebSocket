@@ -10,14 +10,14 @@
 
     <EditText
         android:id="@+id/urlEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="354dp"
         android:layout_height="wrap_content"
         android:hint="WebSocket URL"
         android:padding="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:textColor="@color/white"
-        android:textColorHint="#999999" />
+        android:textColorHint="#505050"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/connectButton"
@@ -25,17 +25,17 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:text="Connect"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/messageEditText" />
+        app:layout_constraintStart_toEndOf="@+id/urlEditText"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/messageEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="354dp"
         android:layout_height="wrap_content"
         android:hint="Message"
         android:padding="16dp"
         android:textColor="@color/white"
-        android:textColorHint="#999999"
+        android:textColorHint="#505050"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/urlEditText" />
 
@@ -45,8 +45,8 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:text="Send Message String"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sendBytesButton" />
+        app:layout_constraintStart_toEndOf="@+id/sendBytesButton"
+        app:layout_constraintTop_toTopOf="@+id/sendBytesButton" />
 
     <Button
         android:id="@+id/sendBytesButton"
@@ -55,8 +55,8 @@
         android:layout_below="@id/sendButton"
         android:padding="16dp"
         android:text="Send Message Bytes"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connectButton" />
+        app:layout_constraintStart_toEndOf="@+id/messageEditText"
+        app:layout_constraintTop_toBottomOf="@+id/urlEditText" />
 
     <ListView
         android:id="@+id/logListView"
@@ -65,7 +65,106 @@
         android:layout_below="@id/sendBytesButton"
         android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:layout_editor_absoluteY="8dp" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <EditText
+        android:id="@+id/subnetEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Subnet (e.g., 192.168.1)"
+        android:inputType="text"
+        android:textColor="@color/white"
+        android:textColorHint="#505050"
+        app:layout_constraintBottom_toTopOf="@+id/ipListView"
+        app:layout_constraintStart_toStartOf="@+id/ipListView" />
+
+    <CheckBox
+        android:id="@+id/useDeviceSubnetCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Use device's subnet"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/subnetEditText"
+        app:layout_constraintStart_toEndOf="@+id/subnetEditText" />
+
+    <Button
+        android:id="@+id/ipScanButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/useDeviceSubnetCheckBox"
+        android:layout_alignParentEnd="true"
+        android:text="Scan IP"
+        app:layout_constraintBottom_toTopOf="@+id/subnetEditText"
+        app:layout_constraintStart_toStartOf="@+id/subnetEditText" />
+
+    <ListView
+        android:id="@+id/ipListView"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <EditText
+        android:id="@+id/ipEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="IP (e.g., 192.168.1.41)"
+        android:inputType="text"
+        android:textColor="@color/white"
+        android:textColorHint="#505050"
+        app:layout_constraintBottom_toTopOf="@+id/portListView"
+        app:layout_constraintStart_toStartOf="@+id/portListView" />
+
+    <EditText
+        android:id="@+id/startPortEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="0-65535"
+        android:inputType="numberDecimal"
+        android:textColor="@color/white"
+        android:textColorHint="#505050"
+        app:layout_constraintBottom_toTopOf="@+id/ipEditText"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/endPortEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:hint="0-65535"
+        android:inputType="numberDecimal"
+        android:textColor="@color/white"
+        android:textColorHint="#505050"
+        app:layout_constraintBottom_toTopOf="@+id/ipEditText"
+        app:layout_constraintStart_toEndOf="@+id/startPortEditText" />
+
+    <CheckBox
+        android:id="@+id/searchKnowPortsCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search Know Ports"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/ipEditText"
+        app:layout_constraintStart_toEndOf="@+id/ipEditText" />
+
+    <Button
+        android:id="@+id/portScanButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scan Port"
+        app:layout_constraintBottom_toTopOf="@+id/searchKnowPortsCheckBox"
+        app:layout_constraintEnd_toEndOf="@+id/searchKnowPortsCheckBox"
+        app:layout_constraintHorizontal_bias="1.0" />
+
+    <ListView
+        android:id="@+id/portListView"
+        android:layout_width="400dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="44dp"
+        app:layout_constraintBottom_toTopOf="@+id/ipScanButton"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

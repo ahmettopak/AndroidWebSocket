@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private TinyDB tinyDB;
     private final String defaultSocketURL = "ws://192.168.3.2:2005";
     private final String KEY_SOCKET_URL = "SOCKET_URL";
-
     IPScannerManager ipScannerManager;
 
     @Override
@@ -61,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
         binding.connectButton.setOnClickListener(v -> toggleWebSocketConnection());
         binding.sendButton.setOnClickListener(v -> sendMessage());
         binding.sendBytesButton.setOnClickListener(v -> sendByteMessage());
+        binding.loopSendCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> toggleLoopSend(isChecked));
 
-        ipScannerManager = new IPScannerManager(new IPScanListener() {
+        ipScannerManager = new IPScannerManager(
+                new IPScanListener() {
             @Override
             public void onIPScanStarted() {
                 ipAdapter.log(LogEntry.LogType.INFO, "IP Scan started");
@@ -77,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
             public void onIPScanCompleted(List<String> reachableHosts) {
                 ipAdapter.log(LogEntry.LogType.INFO, "IP Scan completed. Reachable hosts: " + reachableHosts);
             }
-        }, new PortScanListener() {
+        },
+                new PortScanListener() {
             @Override
             public void onPortScanStarted() {
                 portAdapter.log(LogEntry.LogType.INFO, "Port Scan started");
@@ -231,6 +233,22 @@ public class MainActivity extends AppCompatActivity {
             disconnectWebSocket();
         }
     }
+
+    private void toggleLoopSend(boolean isChecked) {
+        if (webSocketManager != null) {
+            if(isChecked){
+                int interval = Integer.parseInt(binding.loopSendIntervalTextView.getText().toString().trim());
+
+                webSocketManager.startMessageSender(interval , "Muhammed: Hello from Android WebSocket");
+            }
+            else{
+                webSocketManager.stopMessageSender();
+            }
+        } else {
+            logAdapter.log(LogEntry.LogType.ERROR, "WebSocket is not connected");
+        }
+    }
+
 
     private void connectWebSocket() {
         String url = binding.urlEditText.getText().toString();

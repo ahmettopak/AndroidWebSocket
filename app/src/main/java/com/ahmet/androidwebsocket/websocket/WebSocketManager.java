@@ -19,6 +19,9 @@ import java.net.InetSocketAddress;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Ahmet TOPAK
@@ -30,6 +33,38 @@ public class WebSocketManager implements WebSocketListener {
     private SimpleWebSocket webSocket;
     private LogAdapter logAdapter;
     private static final int CONNECTION_TIMEOUT = 5000;
+    // Executor for sending messages at fixed intervals
+    private ScheduledExecutorService messageSenderExecutor;
+    private static final int MESSAGE_SEND_INTERVAL = 10; // 10 milliseconds
+
+    private int messageCount = 0;
+
+    // Start sending messages at regular intervals
+    public void startMessageSender(int interval) {
+        messageSenderExecutor = Executors.newSingleThreadScheduledExecutor();
+        messageSenderExecutor.scheduleWithFixedDelay(() -> {
+            if (webSocket.isOpen()) {
+                messageCount++;
+                sendMessage("Ahmet TOPAK: " + messageCount); // Replace with your message
+            }
+        }, 0, interval, TimeUnit.MILLISECONDS);
+    }
+    public void startMessageSender(int interval , String prefix) {
+        messageSenderExecutor = Executors.newSingleThreadScheduledExecutor();
+        messageSenderExecutor.scheduleWithFixedDelay(() -> {
+            if (webSocket.isOpen()) {
+                messageCount++;
+                sendMessage(prefix + messageCount); // Replace with your message
+            }
+        }, 0, interval, TimeUnit.MILLISECONDS);
+    }
+
+    // Stop sending messages
+    public void stopMessageSender() {
+        if (messageSenderExecutor != null && !messageSenderExecutor.isShutdown()) {
+            messageSenderExecutor.shutdown();
+        }
+    }
 
     public WebSocketManager(String url, LogAdapter logAdapter) {
         this.logAdapter = logAdapter;

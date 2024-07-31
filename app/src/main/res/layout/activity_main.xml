@@ -58,6 +58,27 @@
         app:layout_constraintStart_toEndOf="@+id/messageEditText"
         app:layout_constraintTop_toBottomOf="@+id/urlEditText" />
 
+    <CheckBox
+        android:id="@+id/loopSendCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loop Send"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/sendBytesButton"
+        app:layout_constraintStart_toEndOf="@+id/connectButton" />
+
+    <EditText
+        android:id="@+id/loopSendIntervalTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="0-999999999"
+        android:inputType="numberDecimal"
+        android:textColor="@color/white"
+        android:textColorHint="#505050"
+        android:text="100"
+        app:layout_constraintBottom_toBottomOf="@+id/loopSendCheckBox"
+        app:layout_constraintStart_toEndOf="@+id/loopSendCheckBox" />""/>
+
     <ListView
         android:id="@+id/logListView"
         android:layout_width="455dp"
